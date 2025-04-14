@@ -108,12 +108,8 @@ const MenuScreen = () => {
             item.food ? (
               <Pressable
                 onPress={() => {
-                  global.__selectedFoodItem = item;
-                  router.push(
-                    { 
-                      pathname: "/food/[id]", 
-                      params: { id: String(item.food.id) } 
-                    });
+                  const encodedItem = encodeURIComponent(JSON.stringify(item));
+                  router.push({ pathname: "/food/[id]", params: { id: String(item.food.id), item: encodedItem } });
                 }}
               >
                 <View style={styles.itemCard}>

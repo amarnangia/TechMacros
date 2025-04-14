@@ -1,22 +1,20 @@
-// app/food/[id].tsx
-
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, Button } from "react-native";
-import { useRouter } from "expo-router";
-
-export {};
-
-declare global {
-  var __selectedFoodItem: any;
-}
-
-const selectedFood = global.__selectedFoodItem;
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Button,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 const FoodDetailScreen = () => {
   const router = useRouter();
+  const { item } = useLocalSearchParams();
   const [servings, setServings] = useState("1");
 
-  if (!selectedFood || !selectedFood.food) {
+  if (!item || typeof item !== "string") {
     return (
       <View style={styles.container}>
         <Text style={styles.heading}>No food item selected</Text>
@@ -25,7 +23,28 @@ const FoodDetailScreen = () => {
     );
   }
 
-  const { food } = selectedFood;
+  let foodItem;
+  try {
+    foodItem = JSON.parse(decodeURIComponent(item));
+  } catch (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.heading}>Failed to load item data</Text>
+        <Button title="Back to menu" onPress={() => router.back()} />
+      </View>
+    );
+  }
+
+  const { food } = foodItem;
+  if (!food) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.heading}>No food info found</Text>
+        <Button title="Back to menu" onPress={() => router.back()} />
+      </View>
+    );
+  }
+
   const {
     name,
     ingredients,
@@ -34,7 +53,8 @@ const FoodDetailScreen = () => {
   } = food;
 
   const s = parseFloat(servings) || 1;
-  const getVal = (val: number | null) => (val !== null ? (val * s).toFixed(1) : "N/A");
+  const getVal = (val: number | null) =>
+    val !== null ? (val * s).toFixed(1) : "N/A";
 
   return (
     <ScrollView style={styles.container}>
@@ -50,7 +70,8 @@ const FoodDetailScreen = () => {
           keyboardType="numeric"
         />
         <Text style={styles.unit}>
-          {serving_size_info?.serving_size_amount} {serving_size_info?.serving_size_unit}
+          {serving_size_info?.serving_size_amount}{" "}
+          {serving_size_info?.serving_size_unit}
         </Text>
       </View>
 
