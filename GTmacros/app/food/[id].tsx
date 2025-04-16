@@ -8,6 +8,7 @@ import {
   Button,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const FoodDetailScreen = () => {
   const router = useRouter();
@@ -68,6 +69,26 @@ const FoodDetailScreen = () => {
           value={servings}
           onChangeText={setServings}
           keyboardType="numeric"
+        />
+        <Button
+          title="Add to My Meals"
+          onPress={async () => {
+            const x = await AsyncStorage.getItem('userMeals')
+            console.log(x);
+            const dateKey = new Date().toISOString().split('T')[0];
+            await global.saveMealForDate(dateKey, {
+              ...food,
+              servings: parseFloat(servings) || 1,
+              rounded_nutrition_info: {
+                ...food.rounded_nutrition_info,
+                calories: food.rounded_nutrition_info.calories * (parseFloat(servings) || 1),
+                g_protein: food.rounded_nutrition_info.g_protein * (parseFloat(servings) || 1),
+                g_carbs: food.rounded_nutrition_info.g_carbs * (parseFloat(servings) || 1),
+                g_fat: food.rounded_nutrition_info.g_fat * (parseFloat(servings) || 1),
+              },
+            });
+            alert("Meal saved!");
+          }}
         />
         <Text style={styles.unit}>
           {serving_size_info?.serving_size_amount}{" "}
