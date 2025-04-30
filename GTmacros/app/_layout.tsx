@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ Add this
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 export { ErrorBoundary } from 'expo-router';
 
