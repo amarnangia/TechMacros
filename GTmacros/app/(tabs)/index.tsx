@@ -112,7 +112,7 @@ const ChooseMealScreen = () => {
 
       <View style={styles.continueButton}>
         <Button
-          title="Continue"
+          title="SEE MENU"
           color={GT_GOLD}
           onPress={handleContinue}
           disabled={!selectedMeal || !selectedLocation}

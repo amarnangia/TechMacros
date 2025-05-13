@@ -17,7 +17,7 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
-const STORAGE_KEY = 'userMeals'; // ✅ Global storage key
+const STORAGE_KEY = 'userMeals'; //  Global storage key
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -31,7 +31,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      // ✅ Initialize global save/load logic
+      //  Initialize global save/load logic
       global.saveMealForDate = async (dateKey, meal) => {
         try {
           const stored = await AsyncStorage.getItem(STORAGE_KEY);
@@ -76,6 +76,7 @@ function RootLayoutNav() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="food/menu-screen" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
