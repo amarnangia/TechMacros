@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,12 @@ import {
   Pressable,
   Dimensions,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PieChart } from "react-native-chart-kit";
+import MacroCircle from '@/components/MacroCircle';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -19,6 +21,24 @@ const FoodDetailScreen = () => {
   const router = useRouter();
   const { item } = useLocalSearchParams();
   const [servings, setServings] = useState("1");
+  const [goalCalories, setGoalCalories] = useState(2000);
+  const [goalProtein, setGoalProtein] = useState(50);
+  const [goalCarbs, setGoalCarbs] = useState(275);
+  const [goalFat, setGoalFat] = useState(78);
+
+  useEffect(() => {
+    const fetchGoals = async () => {
+      const cal = await AsyncStorage.getItem("goal_calories");
+      const prot = await AsyncStorage.getItem("goal_protein");
+      const carbs = await AsyncStorage.getItem("goal_carbs");
+      const fat = await AsyncStorage.getItem("goal_fat");
+      if (cal) setGoalCalories(parseInt(cal, 10));
+      if (prot) setGoalProtein(parseInt(prot, 10));
+      if (carbs) setGoalCarbs(parseInt(carbs, 10));
+      if (fat) setGoalFat(parseInt(fat, 10));
+    };
+    fetchGoals();
+  }, []);
 
   if (!item || typeof item !== "string") {
     return (
@@ -65,14 +85,13 @@ const FoodDetailScreen = () => {
   } = food;
 
   const s = parseFloat(servings) || 1;
-  const getVal = (val: number | null) =>
-    val !== null ? (val * s).toFixed(1) : "N/A";
+  const getVal = (val: number | null) => val !== null ? (val * s).toFixed(1) : "N/A";
 
   const saveMeal = async () => {
     const dateKey = new Date().toISOString().split("T")[0];
     await global.saveMealForDate(dateKey, {
       ...food,
-      servings: parseFloat(servings) || 1,
+      servings: s,
       rounded_nutrition_info: {
         ...nutrition,
         calories: nutrition.calories * s,
@@ -87,172 +106,153 @@ const FoodDetailScreen = () => {
   const protein = nutrition.g_protein * s;
   const carbs = nutrition.g_carbs * s;
   const fat = nutrition.g_fat * s;
-  const total = protein + carbs + fat;
-
-  const chartData = [
-    {
-      name: "Protein",
-      grams: protein,
-      color: "#4CAF50",
-      legendFontColor: "#333",
-      legendFontSize: 14,
-    },
-    {
-      name: "Carbs",
-      grams: carbs,
-      color: "#2196F3",
-      legendFontColor: "#333",
-      legendFontSize: 14,
-    },
-    {
-      name: "Fat",
-      grams: fat,
-      color: "#FF9800",
-      legendFontColor: "#333",
-      legendFontSize: 14,
-    },
-  ];
 
   return (
-    <ScrollView style={styles.container}>
-      <Pressable onPress={() => router.back()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>← Back to Menu</Text>
-      </Pressable>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View style={styles.container}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back to Menu</Text>
+        </Pressable>
 
-      <Text style={styles.heading}>{name}</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.heading}>{name}</Text>
+          <Text style={styles.section}>Macro Breakdown</Text>
+          <Text style={styles.bodyText}>Edit Macro Goals in profile</Text>
 
-      <View style={styles.inputRow}>
-        <Text style={styles.label}>Servings:</Text>
-        <TextInput
-          style={styles.input}
-          value={servings}
-          onChangeText={setServings}
-          keyboardType="numeric"
-        />
-        <Text style={styles.unit}>
-          {serving_size_info?.serving_size_amount}{" "}
-          {serving_size_info?.serving_size_unit}
-        </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
+            <View style={{ flexDirection: "row", marginVertical: 12 }}>
+              <MacroCircle label="CAL" value={nutrition.calories * s} unit="" max={goalCalories} color="#FFA500" />
+              <MacroCircle label="FAT" value={fat} max={goalFat} color="#F28C28" />
+              <MacroCircle label="CARBS" value={carbs} max={goalCarbs} color="#007FAE" />
+              <MacroCircle label="PROT" value={protein} max={goalProtein} color="#B3A369" />
+            </View>
+          </ScrollView>
+
+          <View style={styles.inputRow}>
+            <Text style={styles.label}>Servings:</Text>
+            <TextInput
+              style={styles.input}
+              value={servings}
+              onChangeText={setServings}
+              keyboardType="numeric"
+            />
+            <Text style={styles.unit}>
+              {serving_size_info?.serving_size_amount} {serving_size_info?.serving_size_unit}
+            </Text>
+          </View>
+
+          {ingredients && (
+            <>
+              <Text style={styles.section}>Ingredients</Text>
+              <Text style={styles.bodyText}>{ingredients}</Text>
+            </>
+          )}
+
+          <Text style={styles.section}>Allergens</Text>
+          {food.icons?.food_icons?.length > 0 ? (
+            <View style={styles.nutritionList}>
+              {food.icons.food_icons.map((icon, idx) => (
+                <Text key={idx}>• {icon.name}</Text>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.bodyText}>No allergens listed for this item.</Text>
+          )}
+        </ScrollView>
+
+        <Pressable onPress={saveMeal} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Add to My Meals</Text>
+        </Pressable>
       </View>
-
-      <Pressable onPress={saveMeal} style={styles.saveButton}>
-        <Text style={styles.saveButtonText}>Add to My Meals</Text>
-      </Pressable>
-
-      <Text style={styles.section}>Macro Breakdown</Text>
-<View style={styles.macroRow}>
-  <View style={styles.macroStats}>
-    <Text style={styles.macroText}>Protein: {protein.toFixed(1)} g</Text>
-    <Text style={styles.macroText}>Carbs: {carbs.toFixed(1)} g</Text>
-    <Text style={styles.macroText}>Fat: {fat.toFixed(1)} g</Text>
-  </View>
-  <PieChart
-      data={chartData}
-      width={screenWidth * 0.6}
-      height={screenWidth * 0.6 * .6}
-      accessor={"grams"}
-      backgroundColor={"transparent"}
-      paddingLeft={"5"}
-      chartConfig={{
-        color: () => "#000",
-        labelColor: () => "#333",
-      }}
-      style={{ marginLeft: 10 }}
-    />
-  </View>
-
-
-      <Text style={styles.section}>Nutrition Info (x{servings || 1})</Text>
-      <View style={styles.nutritionList}>
-        <Text>Calories: {getVal(nutrition.calories)} kcal</Text>
-        <Text>Protein: {getVal(nutrition.g_protein)} g</Text>
-        <Text>Carbs: {getVal(nutrition.g_carbs)} g</Text>
-        <Text>Fat: {getVal(nutrition.g_fat)} g</Text>
-        <Text>Saturated Fat: {getVal(nutrition.g_saturated_fat)} g</Text>
-        <Text>Sodium: {getVal(nutrition.mg_sodium)} mg</Text>
-        <Text>Cholesterol: {getVal(nutrition.mg_cholesterol)} mg</Text>
-        <Text>Iron: {getVal(nutrition.mg_iron)} mg</Text>
-        <Text>Calcium: {getVal(nutrition.mg_calcium)} mg</Text>
-        <Text>Vitamin C: {getVal(nutrition.mg_vitamin_c)} mg</Text>
-        <Text>Vitamin A: {getVal(nutrition.iu_vitamin_a)} IU</Text>
-      </View>
-
-      {ingredients ? (
-        <>
-          <Text style={styles.section}>Ingredients</Text>
-          <Text>{ingredients}</Text>
-        </>
-      ) : null}
-
-      <Text style={styles.section}>Allergens</Text>
-      <Text>Currently not available from this endpoint.</Text>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#FAFAFA" },
-  heading: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    marginTop: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#F7F7F7",
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
-  label: { fontSize: 16 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 10,
-    marginHorizontal: 10,
-    width: 60,
-    height: 40,
-    borderRadius: 6,
-    backgroundColor: "#fff",
+  scrollContent: {
+    paddingBottom: 100,
   },
-  unit: { fontSize: 14, color: "#666" },
-  saveButton: {
-    backgroundColor: "#007AFF",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  saveButtonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  section: {
-    marginTop: 18,
-    fontSize: 18,
-    fontWeight: "600",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingBottom: 6,
-  },
-  nutritionList: {
-    marginTop: 10,
-    gap: 4,
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#003057",
+    marginBottom: 10,
   },
   backButton: {
     marginBottom: 10,
   },
   backButtonText: {
-    color: "#007AFF",
+    color: "#007FAE",
     fontSize: 16,
     fontWeight: "500",
   },
-  macroRow: {
+  section: {
+    marginTop: 18,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#003057",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    paddingBottom: 4,
+  },
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 10,
+    marginVertical: 12,
   },
-  macroStats: {
-    flex: 1,
-    gap: 8,
+  label: {
+    fontSize: 16,
+    color: "#003057",
   },
-  macroText: {
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    marginHorizontal: 10,
+    width: 60,
+    height: 40,
+    borderRadius: 6,
+  },
+  unit: {
+    fontSize: 14,
+    color: "#666",
+  },
+  nutritionList: {
+    marginTop: 10,
+    gap: 4,
+  },
+  bodyText: {
+    fontSize: 15,
+    color: "#333",
+    marginTop: 6,
+  },
+  saveButton: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: "#B3A369",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  saveButtonText: {
+    color: "#003057",
+    fontWeight: "600",
     fontSize: 16,
   },
-  
 });
 
 export default FoodDetailScreen;

@@ -78,7 +78,6 @@ const MenuScreen = () => {
       setAvailableDates(days.map((d: any) => d.date));
 
       const dayData = days.find((d: any) => d.date === formattedDateString);
-      console.log('API Response:', dayData);
 
       setMenu(dayData?.menu_items || []);
       
@@ -130,18 +129,51 @@ const MenuScreen = () => {
   
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    setExpandedSections((prev) => {
+      const isCurrentlyExpanded = !!prev[section];
+      const newState: { [key: string]: boolean } = {};
+  
+      // Collapse all sections
+      Object.keys(prev).forEach((key) => {
+        newState[key] = false;
+      });
+  
+      // Toggle the clicked section (expand if it was collapsed)
+      newState[section] = !isCurrentlyExpanded;
+  
+      return newState;
+    });
+  
+  
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Button
-        title={`Select Date (${date.toDateString()})`}
-        onPress={() => setShowDatePicker(true)}
-      />
+      <Text style={styles.heading}>
+        {meal?.toUpperCase()} at {location?.replace("-", " ").toUpperCase()}
+      </Text>
+
+      
+      <View style={styles.dateNavigationContainer}>
+        <Pressable onPress={() => setDate(prev => new Date(prev.setDate(prev.getDate() - 7)))}>
+          <Text style={styles.dateNavArrow}>«</Text>
+        </Pressable>
+        <Pressable onPress={() => setDate(prev => new Date(prev.setDate(prev.getDate() - 1)))}>
+          <Text style={styles.dateNavArrow}>‹</Text>
+        </Pressable>
+
+        <Pressable onPress={() => setShowDatePicker(true)}>
+          <Text style={styles.dateText}>{date.toDateString()}</Text>
+        </Pressable>
+
+        <Pressable onPress={() => setDate(prev => new Date(prev.setDate(prev.getDate() + 1)))}>
+          <Text style={styles.dateNavArrow}>›</Text>
+        </Pressable>
+        <Pressable onPress={() => setDate(prev => new Date(prev.setDate(prev.getDate() + 7)))}>
+          <Text style={styles.dateNavArrow}>»</Text>
+        </Pressable>
+      </View>
+
       {showDatePicker && (
         <DateTimePicker
           value={date}
@@ -151,11 +183,7 @@ const MenuScreen = () => {
         />
       )}
 
-      <Text style={styles.heading}>
-        {meal?.toUpperCase()} at {location?.replace("-", " ").toUpperCase()}
-      </Text>
-      <Text style={styles.subHeading}>for {date.toDateString()}</Text>
-
+      
       {loading ? (
         <ActivityIndicator size="large" style={styles.loading} />
       ) : menu.length > 0 ? (
@@ -171,25 +199,25 @@ const MenuScreen = () => {
             </Pressable>
 
             {expandedSections[section] &&
-  items.map((item) =>
-    item.food ? (
-      <Pressable key={item.id} onPress={() => handleItemPress(item)}>
-        <View style={styles.itemCard}>
-          <Text style={styles.itemName}>{item.food.name}</Text>
-          <Text style={styles.sectionLabel}>
-            Section: {item.text || "No section"}
-          </Text>
-          <Text style={styles.sectionLabel}>
-            ID: {item.id || "No section"}
-          </Text>
-          <Text style={styles.macros}>
-            Calories: {item.food.rounded_nutrition_info.calories} kcal | Protein:{" "}
-            {item.food.rounded_nutrition_info.g_protein}g | Carbs:{" "}
-            {item.food.rounded_nutrition_info.g_carbs}g | Fat:{" "}
-            {item.food.rounded_nutrition_info.g_fat}g
-          </Text>
-        </View>
-      </Pressable>
+      items.map((item) =>
+        item.food ? (
+          <Pressable key={item.id} onPress={() => handleItemPress(item)}>
+            <View style={styles.itemCard}>
+              <Text style={styles.itemName}>{item.food.name}</Text>
+              <Text style={styles.sectionLabel}>
+                Section: {item.text || "No section"}
+              </Text>
+              <Text style={styles.sectionLabel}>
+                ID: {item.id || "No section"}
+              </Text>
+              <Text style={styles.macros}>
+                Calories: {item.food.rounded_nutrition_info.calories} kcal | Protein:{" "}
+                {item.food.rounded_nutrition_info.g_protein}g | Carbs:{" "}
+                {item.food.rounded_nutrition_info.g_carbs}g | Fat:{" "}
+                {item.food.rounded_nutrition_info.g_fat}g
+              </Text>
+            </View>
+          </Pressable>
     ) : (
       <Text key={item.id} style={styles.noName}>Unnamed menu item</Text>
     )
@@ -283,6 +311,27 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: "center",
     fontSize: 14,
+    color: "#003057",
+  },
+  dateNavigationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 16,
+    paddingVertical: 10,
+    backgroundColor: "#E8E8E8",
+    borderRadius: 10,
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: "600",
+    paddingHorizontal: 12,
+    color: "#003057",
+    textDecorationLine: "underline",
+  },
+  dateNavArrow: {
+    fontSize: 20,
+    paddingHorizontal: 10,
     color: "#003057",
   },
 });
