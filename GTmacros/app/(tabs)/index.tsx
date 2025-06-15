@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -12,13 +12,26 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format } from "date-fns";
 
-// Colors
+// Theme Colors
 const GT_NAVY = "#003057";
 const GT_GOLD = "#B3A369";
 const GT_DARK_BG = "#1a2a40";
 const WHITE = "#FFFFFF";
 
-// Location data
+// Static Config
+const BOX_SIZE = 80;
+const DINING_HALL_BOX_SIZE = 60;
+const STORAGE_KEY = "userMeals";
+
+// Global Daily Goals
+const globalGoals = {
+  calories: 2200,
+  protein: 150,
+  carbs: 250,
+  fat: 70,
+};
+
+// Static location data
 const locationData = [
   { name: "West Village", id: "west-village", meals: ["breakfast", "lunch", "dinner"], icon: "🏙️" },
   { name: "North Ave Dining Hall", id: "north-ave-dining-hall", meals: ["breakfast", "lunch", "dinner", "overnight"], icon: "🏫" },
@@ -34,55 +47,17 @@ const locationData = [
 
 const diningHallIds = ["west-village", "north-ave-dining-hall", "brittain"];
 
-const BOX_SIZE = 80;
-const DINING_HALL_BOX_SIZE = 60;
-const STORAGE_KEY = "userMeals";
-
 const ChooseMealScreen = () => {
+  const [mealHistory, setMealHistory] = useState<{ [date: string]: any[] }>({});
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-
-  // Meal history state only (removed date picker states)
-  const [mealHistory, setMealHistory] = useState<{ [date: string]: any[] }>({});
-
   const router = useRouter();
 
-  // Filter dining halls and others inside the component
-  const diningHalls = locationData.filter((loc) => diningHallIds.includes(loc.id));
-  const otherLocations = locationData.filter((loc) => !diningHallIds.includes(loc.id));
-
-  // Dummy global goals; replace with your actual global state
-  const globalGoals = {
-    calories: 2200,
-    protein: 150,
-    carbs: 250,
-    fat: 70,
-  };
-
-  // Load meal history on screen focus
-  useEffect(() => {
-    const loadMeals = async () => {
-      try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setMealHistory(JSON.parse(stored));
-        }
-      } catch (err) {
-        console.error("Failed to load meal history:", err);
-      }
-    };
-    loadMeals();
-  }, []);
-
-  // Hardcode today's date formatted
   const today = new Date();
   const formattedDate = format(today, "yyyy-MM-dd");
+  const mealsForToday = mealHistory[formattedDate] || [];
 
-  // Meals for today's date only
-  const mealsForDate = mealHistory[formattedDate] || [];
-
-  // Calculate total macros for today based on saved meals
-  const totalMacros = mealsForDate.reduce(
+  const totalMacros = mealsForToday.reduce(
     (totals, meal) => {
       const info = meal.rounded_nutrition_info || {};
       return {
@@ -95,10 +70,23 @@ const ChooseMealScreen = () => {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  const openMealModal = (location: any) => {
-    setSelectedLocation(location);
-    setModalVisible(true);
-  };
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadMeals = async () => {
+        try {
+          const stored = await AsyncStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            setMealHistory(JSON.parse(stored));
+          }
+        } catch (err) {
+          console.error("Failed to load meal history:", err);
+        }
+      };
+      loadMeals();
+    }, [])
+  );
+
 
   const handleMealSelect = (meal: string) => {
     setModalVisible(false);
@@ -111,15 +99,18 @@ const ChooseMealScreen = () => {
     });
   };
 
+  const openMealModal = (location: any) => {
+    setSelectedLocation(location);
+    setModalVisible(true);
+  };
+
+  const diningHalls = locationData.filter((loc) => diningHallIds.includes(loc.id));
+  const otherLocations = locationData.filter((loc) => !diningHallIds.includes(loc.id));
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Removed date selection UI */}
-
-      {/* Header Section */}
       <View style={styles.headerCard}>
         <Text style={styles.titleText}>Welcome to GT Macros</Text>
-
-        {/* Macros progress bars in 2 rows of 2 */}
         <View style={styles.macrosRow}>
           <MacroBar label="Calories" value={totalMacros.calories} goal={globalGoals.calories} color="#FF6B6B" />
           <MacroBar label="Protein" value={totalMacros.protein} goal={globalGoals.protein} color="#4ECDC4" />
@@ -128,7 +119,6 @@ const ChooseMealScreen = () => {
           <MacroBar label="Carbs" value={totalMacros.carbs} goal={globalGoals.carbs} color="#FFD93D" />
           <MacroBar label="Fat" value={totalMacros.fat} goal={globalGoals.fat} color="#6B6BFF" />
         </View>
-
         <TouchableOpacity style={styles.editButton} onPress={() => router.push("./goals/edit-screen")}>
           <Text style={styles.editButtonText}>Edit Goals</Text>
         </TouchableOpacity>
@@ -137,47 +127,30 @@ const ChooseMealScreen = () => {
       {/* Dining Halls */}
       <Text style={styles.heading}>Dining Halls</Text>
       <View style={styles.diningHallContainer}>
-        <View style={styles.diningHallRow}>
-          {diningHalls.slice(0, 2).map((loc) => (
-            <TouchableOpacity
-              key={loc.id}
-              style={styles.diningHallButton}
-              onPress={() => openMealModal(loc)}
-            >
-              <Text style={styles.optionText}>{loc.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={[styles.diningHallRow, styles.singleButtonRow]}>
-          {diningHalls.slice(2, 3).map((loc) => (
-            <TouchableOpacity
-              key={loc.id}
-              style={styles.diningHallButton}
-              onPress={() => openMealModal(loc)}
-            >
-              <Text style={styles.optionText}>{loc.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {diningHalls.map((loc, idx) => (
+          <TouchableOpacity
+            key={loc.id}
+            style={styles.diningHallButton}
+            onPress={() => openMealModal(loc)}
+          >
+            <Text style={styles.optionText}>{loc.name}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Other Food Places */}
+      {/* Other Locations */}
       <Text style={styles.heading}>Other Food Places</Text>
-      <Text style={styles.warning}>
-        ⚠️ We currently don't have menu information for these locations.
-      </Text>
-      <View style={styles.scrollWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {otherLocations.map((loc) => (
-            <TouchableOpacity key={loc.id} style={styles.optionBox} onPress={() => openMealModal(loc)}>
-              <Text style={styles.icon}>{loc.icon}</Text>
-              <Text style={styles.optionText}>{loc.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <Text style={styles.warning}>⚠️ Menu info not available for these locations.</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollWrapper}>
+        {otherLocations.map((loc) => (
+          <TouchableOpacity key={loc.id} style={styles.optionBox} onPress={() => openMealModal(loc)}>
+            <Text style={styles.icon}>{loc.icon}</Text>
+            <Text style={styles.optionText}>{loc.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-      {/* Meal Selection Modal */}
+      {/* Modal */}
       <Modal transparent animationType="slide" visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -187,7 +160,7 @@ const ChooseMealScreen = () => {
                 <Text style={styles.mealButtonText}>{meal}</Text>
               </TouchableOpacity>
             ))}
-            <Button title="Cancel" color="#ccc" onPress={() => setModalVisible(false)} />
+            <Button title="Cancel" color="#aaa" onPress={() => setModalVisible(false)} />
           </View>
         </View>
       </Modal>
@@ -195,17 +168,7 @@ const ChooseMealScreen = () => {
   );
 };
 
-const MacroBar = ({
-  label,
-  value,
-  goal,
-  color,
-}: {
-  label: string;
-  value: number;
-  goal: number;
-  color: string;
-}) => {
+const MacroBar = ({ label, value, goal, color }: { label: string; value: number; goal: number; color: string }) => {
   const percent = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
   return (
     <View style={{ flex: 1, marginHorizontal: 6 }}>
@@ -213,9 +176,7 @@ const MacroBar = ({
       <View style={styles.barBackground}>
         <View style={[styles.barFill, { width: `${percent}%`, backgroundColor: color }]} />
       </View>
-      <Text style={{ color: WHITE, fontSize: 12, marginTop: 2 }}>
-        {value} / {goal} ({percent.toFixed(0)}%)
-      </Text>
+      <Text style={{ color: WHITE, fontSize: 12, marginTop: 2 }}>{value} / {goal} ({percent.toFixed(0)}%)</Text>
     </View>
   );
 };
@@ -268,7 +229,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   scrollWrapper: {
-    height: BOX_SIZE + 20,
     marginBottom: 16,
   },
   optionBox: {
@@ -286,9 +246,35 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionText: {
-    fontSize: 18,
+    fontSize: 16,
     textAlign: "center",
     color: GT_NAVY,
+  },
+  diningHallContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  diningHallButton: {
+    width: "48%",
+    height: DINING_HALL_BOX_SIZE,
+    backgroundColor: GT_GOLD,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+    padding: 6,
+  },
+  barBackground: {
+    height: 14,
+    backgroundColor: "#555",
+    borderRadius: 8,
+  },
+  barFill: {
+    height: 14,
+    borderRadius: 8,
   },
   modalOverlay: {
     flex: 1,
@@ -322,42 +308,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-
-  barBackground: {
-    height: 14,
-    backgroundColor: "#555",
-    borderRadius: 8,
-  },
-
-  barFill: {
-    height: 14,
-    borderRadius: 8,
-  },
-  diningHallContainer: {
-  // spacing around container
-  marginBottom: 16,
-},
-
-diningHallRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  marginBottom: 12,
-},
-
-singleButtonRow: {
-  justifyContent: "center",
-},
-
-diningHallButton: {
-  width: "48%",
-  height: DINING_HALL_BOX_SIZE,
-  backgroundColor: GT_GOLD,
-  borderRadius: 10,
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 6,
-},
-
 });
 
 export default ChooseMealScreen;
