@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -18,20 +18,25 @@ const GT_GOLD = "#B3A369";
 const GT_DARK_BG = "#1a2a40";
 const WHITE = "#FFFFFF";
 
-// Static Config
+// Config
 const BOX_SIZE = 80;
 const DINING_HALL_BOX_SIZE = 60;
 const STORAGE_KEY = "userMeals";
 
-// Global Daily Goals
-const globalGoals = {
+const STORAGE_KEYS = {
+  calories: "goal_calories",
+  protein: "goal_protein",
+  carbs: "goal_carbs",
+  fat: "goal_fat",
+};
+
+const DEFAULT_GOALS = {
   calories: 2200,
   protein: 150,
   carbs: 250,
   fat: 70,
 };
 
-// Static location data
 const locationData = [
   { name: "West Village", id: "west-village", meals: ["breakfast", "lunch", "dinner"], icon: "🏙️" },
   { name: "North Ave Dining Hall", id: "north-ave-dining-hall", meals: ["breakfast", "lunch", "dinner", "overnight"], icon: "🏫" },
@@ -49,6 +54,7 @@ const diningHallIds = ["west-village", "north-ave-dining-hall", "brittain"];
 
 const ChooseMealScreen = () => {
   const [mealHistory, setMealHistory] = useState<{ [date: string]: any[] }>({});
+  const [goals, setGoals] = useState(DEFAULT_GOALS);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
@@ -70,10 +76,22 @@ const ChooseMealScreen = () => {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  
+  const loadGoals = async () => {
+    try {
+      const newGoals: any = {};
+      for (const [key, storageKey] of Object.entries(STORAGE_KEYS)) {
+        const value = await AsyncStorage.getItem(storageKey);
+        newGoals[key] = value ? parseInt(value) : DEFAULT_GOALS[key as keyof typeof DEFAULT_GOALS];
+      }
+      setGoals(newGoals);
+    } catch (err) {
+      console.error("Failed to load goals:", err);
+    }
+  };
+
   useFocusEffect(
     React.useCallback(() => {
-      const loadMeals = async () => {
+      const loadData = async () => {
         try {
           const stored = await AsyncStorage.getItem(STORAGE_KEY);
           if (stored) {
@@ -82,11 +100,11 @@ const ChooseMealScreen = () => {
         } catch (err) {
           console.error("Failed to load meal history:", err);
         }
+        await loadGoals();
       };
-      loadMeals();
+      loadData();
     }, [])
   );
-
 
   const handleMealSelect = (meal: string) => {
     setModalVisible(false);
@@ -112,12 +130,12 @@ const ChooseMealScreen = () => {
       <View style={styles.headerCard}>
         <Text style={styles.titleText}>Welcome to GT Macros</Text>
         <View style={styles.macrosRow}>
-          <MacroBar label="Calories" value={totalMacros.calories} goal={globalGoals.calories} color="#FF6B6B" />
-          <MacroBar label="Protein" value={totalMacros.protein} goal={globalGoals.protein} color="#4ECDC4" />
+          <MacroBar label="Calories" value={totalMacros.calories} goal={goals.calories} color="#FF6B6B" />
+          <MacroBar label="Protein" value={totalMacros.protein} goal={goals.protein} color="#4ECDC4" />
         </View>
         <View style={styles.macrosRow}>
-          <MacroBar label="Carbs" value={totalMacros.carbs} goal={globalGoals.carbs} color="#FFD93D" />
-          <MacroBar label="Fat" value={totalMacros.fat} goal={globalGoals.fat} color="#6B6BFF" />
+          <MacroBar label="Carbs" value={totalMacros.carbs} goal={goals.carbs} color="#FFD93D" />
+          <MacroBar label="Fat" value={totalMacros.fat} goal={goals.fat} color="#6B6BFF" />
         </View>
         <TouchableOpacity style={styles.editButton} onPress={() => router.push("./goals/edit-screen")}>
           <Text style={styles.editButtonText}>Edit Goals</Text>
@@ -127,7 +145,7 @@ const ChooseMealScreen = () => {
       {/* Dining Halls */}
       <Text style={styles.heading}>Dining Halls</Text>
       <View style={styles.diningHallContainer}>
-        {diningHalls.map((loc, idx) => (
+        {diningHalls.map((loc) => (
           <TouchableOpacity
             key={loc.id}
             style={styles.diningHallButton}

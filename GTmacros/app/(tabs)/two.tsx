@@ -40,20 +40,35 @@ const Page2 = () => {
   );
 
   useFocusEffect(
-    useCallback(() => {
-      const loadMeals = async () => {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          try {
-            setMealHistory(JSON.parse(stored));
-          } catch (err) {
-            console.error("Failed to parse meals", err);
+  useCallback(() => {
+    const loadMeals = async () => {
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          const now = new Date();
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setDate(now.getDate() - 30);
+
+          const filtered: { [date: string]: any[] } = {};
+          for (const date in parsed) {
+            const dateObj = new Date(date);
+            if (dateObj >= oneMonthAgo) {
+              filtered[date] = parsed[date];
+            }
           }
+
+          setMealHistory(filtered);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+        } catch (err) {
+          console.error("Failed to parse meals", err);
         }
-      };
-      loadMeals();
-    }, [])
-  );
+      }
+    };
+    loadMeals();
+  }, [])
+);
+
 
   const deleteMeal = async (index: number) => {
     const updated = { ...mealHistory };
