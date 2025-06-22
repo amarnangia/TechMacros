@@ -10,10 +10,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  TouchableOpacity,
+  SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MacroCircle from '@/components/MacroCircle';
+import { THEME } from '../../constants/Theme';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -25,6 +29,7 @@ const FoodDetailScreen = () => {
   const [goalProtein, setGoalProtein] = useState(50);
   const [goalCarbs, setGoalCarbs] = useState(275);
   const [goalFat, setGoalFat] = useState(78);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const fetchGoals = async () => {
@@ -88,28 +93,59 @@ const FoodDetailScreen = () => {
   const getVal = (val: number | null) => val !== null ? (val * s).toFixed(1) : "N/A";
 
   const saveMeal = async () => {
-    const dateKey = new Date().toISOString().split("T")[0];
-    await global.saveMealForDate(dateKey, {
-      ...food,
-      servings: s,
-      rounded_nutrition_info: {
-        ...nutrition,
-        calories: nutrition.calories * s,
-        g_protein: nutrition.g_protein * s,
-        g_carbs: nutrition.g_carbs * s,
-        g_fat: nutrition.g_fat * s,
-      },
-    });
-    Alert.alert("Success", "Meal saved!");
+    try {
+      const dateKey = new Date().toISOString().split("T")[0];
+      const STORAGE_KEY = "userMeals";
+      
+      // Get existing meals
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      const mealHistory = stored ? JSON.parse(stored) : {};
+      
+      // Add new meal
+      const newMeal = {
+        ...food,
+        servings: s,
+        rounded_nutrition_info: {
+          ...nutrition,
+          calories: nutrition.calories * s,
+          g_protein: nutrition.g_protein * s,
+          g_carbs: nutrition.g_carbs * s,
+          g_fat: nutrition.g_fat * s,
+        },
+      };
+      
+      if (!mealHistory[dateKey]) {
+        mealHistory[dateKey] = [];
+      }
+      mealHistory[dateKey].push(newMeal);
+      
+      // Save back to storage
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mealHistory));
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error saving meal:", error);
+      Alert.alert("Error", "Failed to save meal");
+    }
   };
 
   const protein = nutrition.g_protein * s;
   const carbs = nutrition.g_carbs * s;
   const fat = nutrition.g_fat * s;
 
+  const goHome = () => {
+    setShowSuccessModal(false);
+    router.push('/(tabs)/');
+  };
+
+  const keepAdding = () => {
+    setShowSuccessModal(false);
+    router.back();
+  };
+
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <View style={styles.container}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back to Menu</Text>
         </Pressable>
@@ -163,15 +199,44 @@ const FoodDetailScreen = () => {
         <Pressable onPress={saveMeal} style={styles.saveButton}>
           <Text style={styles.saveButtonText}>Add to My Meals</Text>
         </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+
+        {/* Success Modal */}
+        <Modal
+          transparent
+          animationType="fade"
+          visible={showSuccessModal}
+          onRequestClose={() => setShowSuccessModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.successModal}>
+              <Text style={styles.successTitle}>Meal Added Successfully!</Text>
+              <Text style={styles.successSubtitle}>Your meal has been saved to your daily log.</Text>
+              
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity style={styles.primaryModalButton} onPress={goHome}>
+                  <Text style={styles.primaryModalButtonText}>Go to Home</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.secondaryModalButton} onPress={keepAdding}>
+                  <Text style={styles.secondaryModalButtonText}>Keep Adding Meals</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
     paddingHorizontal: 20,
     paddingTop: 20,
   },
@@ -181,14 +246,14 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#003057",
+    color: THEME.primary,
     marginBottom: 10,
   },
   backButton: {
     marginBottom: 10,
   },
   backButtonText: {
-    color: "#007FAE",
+    color: THEME.primary,
     fontSize: 16,
     fontWeight: "500",
   },
@@ -196,9 +261,9 @@ const styles = StyleSheet.create({
     marginTop: 18,
     fontSize: 18,
     fontWeight: "600",
-    color: "#003057",
+    color: THEME.primary,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: THEME.border,
     paddingBottom: 4,
   },
   inputRow: {
@@ -208,12 +273,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: "#003057",
+    color: THEME.text,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    borderColor: THEME.border,
+    backgroundColor: THEME.surface,
+    color: THEME.text,
     paddingHorizontal: 10,
     marginHorizontal: 10,
     width: 60,
@@ -222,7 +288,7 @@ const styles = StyleSheet.create({
   },
   unit: {
     fontSize: 14,
-    color: "#666",
+    color: THEME.text,
   },
   nutritionList: {
     marginTop: 10,
@@ -230,7 +296,7 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     fontSize: 15,
-    color: "#333",
+    color: THEME.text,
     marginTop: 6,
   },
   saveButton: {
@@ -238,7 +304,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-    backgroundColor: "#B3A369",
+    backgroundColor: THEME.primary,
     padding: 14,
     borderRadius: 10,
     alignItems: "center",
@@ -249,9 +315,69 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   saveButtonText: {
-    color: "#003057",
+    color: THEME.background,
     fontWeight: "600",
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  successModal: {
+    backgroundColor: THEME.surface,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: THEME.border,
+    width: "100%",
+    maxWidth: 350,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: THEME.primary,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  successSubtitle: {
+    fontSize: 16,
+    color: THEME.text,
+    textAlign: "center",
+    marginBottom: 32,
+  },
+  modalButtonContainer: {
+    width: "100%",
+    gap: 12,
+  },
+  primaryModalButton: {
+    backgroundColor: THEME.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  primaryModalButtonText: {
+    color: THEME.background,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  secondaryModalButton: {
+    backgroundColor: "transparent",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+  secondaryModalButtonText: {
+    color: THEME.primary,
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

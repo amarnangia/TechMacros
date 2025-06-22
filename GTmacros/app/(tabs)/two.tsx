@@ -10,10 +10,12 @@ import {
   TouchableOpacity,
   Button,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format, addDays } from "date-fns";
+import { THEME } from "../../constants/Theme";
 
 const STORAGE_KEY = "userMeals";
 
@@ -97,7 +99,8 @@ const Page2 = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
       {/* Date Selection */}
       <View style={styles.dateNav}>
         <TouchableOpacity onPress={() => setSelectedDate(addDays(selectedDate, -1))}>
@@ -126,10 +129,10 @@ const Page2 = () => {
       {/* Total Macros */}
       <View style={styles.macroBox}>
         <Text style={styles.macroHeading}>Total Macros</Text>
-        <Text>Calories: {totalMacros.calories.toFixed(1)}</Text>
-        <Text>Protein: {totalMacros.protein.toFixed(1)}g</Text>
-        <Text>Carbs: {totalMacros.carbs.toFixed(1)}g</Text>
-        <Text>Fat: {totalMacros.fat.toFixed(1)}g</Text>
+        <Text style={styles.macroText}>Calories: {totalMacros.calories.toFixed(1)}</Text>
+        <Text style={styles.macroText}>Protein: {totalMacros.protein.toFixed(1)}g</Text>
+        <Text style={styles.macroText}>Carbs: {totalMacros.carbs.toFixed(1)}g</Text>
+        <Text style={styles.macroText}>Fat: {totalMacros.fat.toFixed(1)}g</Text>
       </View>
 
       {/* Meals List */}
@@ -144,56 +147,66 @@ const Page2 = () => {
               onPress={() => handleMealPress(idx, meal)}
             >
               <Text style={styles.name}>{meal.name}</Text>
-              <Text>Servings: {meal.servings}</Text>
-              <Text>Calories: {meal.rounded_nutrition_info.calories}</Text>
-              <Text>Protein: {meal.rounded_nutrition_info.g_protein}g</Text>
+              <Text style={styles.mealText}>Servings: {meal.servings}</Text>
+              <Text style={styles.mealText}>Calories: {meal.rounded_nutrition_info.calories}</Text>
+              <Text style={styles.mealText}>Protein: {meal.rounded_nutrition_info.g_protein}g</Text>
               <Button title="Delete" color="red" onPress={() => confirmDelete(idx)} />
             </TouchableOpacity>
           ))
         )}
       </ScrollView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  heading: { fontSize: 22, fontWeight: "bold", marginBottom: 12 },
+  safeArea: { flex: 1, backgroundColor: THEME.background },
+  container: { flex: 1, padding: 16 },
+  heading: { fontSize: 22, fontWeight: "bold", marginBottom: 12, color: THEME.primary },
   dateNav: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
   },
-  arrow: { fontSize: 24, paddingHorizontal: 12 },
+  arrow: { fontSize: 24, paddingHorizontal: 12, color: THEME.primary },
   dateText: {
     fontSize: 18,
     fontWeight: "bold",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: "#eee",
+    backgroundColor: THEME.primary,
+    color: THEME.background,
     borderRadius: 8,
   },
   macroBox: {
-    backgroundColor: "#f0f8ff",
+    backgroundColor: THEME.surface,
     padding: 12,
     borderRadius: 10,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
   macroHeading: {
     fontWeight: "600",
     fontSize: 16,
     marginBottom: 6,
+    color: THEME.primary,
   },
   mealList: { flex: 1 },
   mealCard: {
-    backgroundColor: "#f4f4f4",
+    backgroundColor: THEME.surface,
     padding: 10,
     borderRadius: 8,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
-  name: { fontWeight: "600", fontSize: 16 },
-  empty: { fontSize: 16, color: "#888", textAlign: "center", marginTop: 32 },
+  name: { fontWeight: "600", fontSize: 16, color: THEME.primary },
+  empty: { fontSize: 16, color: THEME.primary, textAlign: "center", marginTop: 32 },
+  macroText: { color: THEME.text, fontSize: 14 },
+  mealText: { color: THEME.text, fontSize: 14 },
 });
 
 export default Page2;

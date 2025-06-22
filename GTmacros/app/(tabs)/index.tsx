@@ -8,15 +8,11 @@ import {
   ScrollView,
   Button,
   Modal,
+  SafeAreaView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format } from "date-fns";
-
-// Theme Colors
-const GT_NAVY = "#003057";
-const GT_GOLD = "#B3A369";
-const GT_DARK_BG = "#1a2a40";
-const WHITE = "#FFFFFF";
+import { COLORS, THEME } from "../../constants/Theme";
 
 // Config
 const BOX_SIZE = 80;
@@ -126,7 +122,8 @@ const ChooseMealScreen = () => {
   const otherLocations = locationData.filter((loc) => !diningHallIds.includes(loc.id));
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.headerCard}>
         <Text style={styles.titleText}>Welcome to GT Macros</Text>
         <View style={styles.macrosRow}>
@@ -137,6 +134,7 @@ const ChooseMealScreen = () => {
           <MacroBar label="Carbs" value={totalMacros.carbs} goal={goals.carbs} color="#FFD93D" />
           <MacroBar label="Fat" value={totalMacros.fat} goal={goals.fat} color="#6B6BFF" />
         </View>
+        <Text style={styles.warningText}>⚠️ Sugar content data is not available from our current data source</Text>
         <TouchableOpacity style={styles.editButton} onPress={() => router.push("./goals/edit-screen")}>
           <Text style={styles.editButtonText}>Edit Goals</Text>
         </TouchableOpacity>
@@ -182,7 +180,8 @@ const ChooseMealScreen = () => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -190,31 +189,36 @@ const MacroBar = ({ label, value, goal, color }: { label: string; value: number;
   const percent = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
   return (
     <View style={{ flex: 1, marginHorizontal: 6 }}>
-      <Text style={{ color: WHITE, fontWeight: "600", marginBottom: 4 }}>{label}</Text>
+      <Text style={{ color: THEME.text, fontWeight: "600", marginBottom: 4 }}>{label}</Text>
       <View style={styles.barBackground}>
         <View style={[styles.barFill, { width: `${percent}%`, backgroundColor: color }]} />
       </View>
-      <Text style={{ color: WHITE, fontSize: 12, marginTop: 2 }}>{value} / {goal} ({percent.toFixed(0)}%)</Text>
+      <Text style={{ color: THEME.text, fontSize: 12, marginTop: 2 }}>{value} / {goal} ({percent.toFixed(0)}%)</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME.background,
+  },
   container: {
     padding: 16,
-    backgroundColor: GT_DARK_BG,
     flexGrow: 1,
   },
   headerCard: {
-    backgroundColor: "#002244",
+    backgroundColor: THEME.surface,
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
   titleText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: GT_GOLD,
+    color: THEME.primary,
     marginBottom: 12,
   },
   macrosRow: {
@@ -224,13 +228,13 @@ const styles = StyleSheet.create({
   },
   editButton: {
     alignSelf: "flex-start",
-    backgroundColor: GT_GOLD,
+    backgroundColor: THEME.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   editButtonText: {
-    color: GT_NAVY,
+    color: THEME.background,
     fontWeight: "600",
     fontSize: 13,
   },
@@ -239,11 +243,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 8,
     marginTop: 12,
-    color: WHITE,
+    color: THEME.primary,
   },
   warning: {
     fontSize: 13,
-    color: "#FFDD57",
+    color: THEME.primary,
     marginBottom: 8,
   },
   scrollWrapper: {
@@ -252,7 +256,7 @@ const styles = StyleSheet.create({
   optionBox: {
     width: BOX_SIZE,
     height: BOX_SIZE,
-    backgroundColor: GT_GOLD,
+    backgroundColor: THEME.primary,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -266,7 +270,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     textAlign: "center",
-    color: GT_NAVY,
+    color: THEME.background,
   },
   diningHallContainer: {
     flexDirection: "row",
@@ -278,7 +282,7 @@ const styles = StyleSheet.create({
   diningHallButton: {
     width: "48%",
     height: DINING_HALL_BOX_SIZE,
-    backgroundColor: GT_GOLD,
+    backgroundColor: THEME.primary,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -287,7 +291,7 @@ const styles = StyleSheet.create({
   },
   barBackground: {
     height: 14,
-    backgroundColor: "#555",
+    backgroundColor: "#333",
     borderRadius: 8,
   },
   barFill: {
@@ -297,23 +301,25 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.8)",
     padding: 30,
   },
   modalContainer: {
-    backgroundColor: WHITE,
+    backgroundColor: THEME.surface,
     borderRadius: 10,
     padding: 20,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 12,
-    color: GT_NAVY,
+    color: THEME.primary,
   },
   mealButton: {
-    backgroundColor: GT_GOLD,
+    backgroundColor: THEME.primary,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -322,9 +328,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mealButtonText: {
-    color: GT_NAVY,
+    color: THEME.background,
     fontWeight: "600",
     fontSize: 16,
+  },
+  warningText: {
+    color: "#FFC107",
+    fontSize: 13,
+    textAlign: "center",
+    fontWeight: "500",
+    marginTop: 8,
   },
 });
 

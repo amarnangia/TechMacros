@@ -7,15 +7,11 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-
-// UI Constants
-const GT_NAVY = "#003057";
-const GT_GOLD = "#B3A369";
-const GT_DARK_BG = "#1a2a40";
-const WHITE = "#FFFFFF";
+import { THEME } from "../../constants/Theme";
 
 // Default recommended values
 const DEFAULT_GOALS = {
@@ -67,7 +63,8 @@ export default function EditGoalsScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Edit Your Goals</Text>
 
       {Object.keys(goals).map((key) => (
@@ -85,45 +82,52 @@ export default function EditGoalsScreen() {
       <TouchableOpacity style={styles.saveButton} onPress={saveGoals}>
         <Text style={styles.saveButtonText}>Save Goals</Text>
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME.background,
+  },
   container: {
     padding: 16,
-    backgroundColor: GT_DARK_BG,
     flexGrow: 1,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: GT_GOLD,
+    color: THEME.primary,
     marginBottom: 20,
   },
   inputGroup: {
     marginBottom: 16,
   },
   label: {
-    color: WHITE,
+    color: THEME.text,
     fontSize: 16,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: WHITE,
+    backgroundColor: THEME.surface,
+    borderWidth: 1,
+    borderColor: THEME.border,
+    color: THEME.text,
     borderRadius: 8,
     padding: 10,
     fontSize: 16,
   },
   saveButton: {
     marginTop: 20,
-    backgroundColor: GT_GOLD,
+    backgroundColor: THEME.primary,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
   },
   saveButtonText: {
-    color: GT_NAVY,
+    color: THEME.background,
     fontSize: 16,
     fontWeight: "bold",
   },

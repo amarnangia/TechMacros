@@ -9,8 +9,10 @@ import {
   Button,
   ScrollView,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { THEME } from "../../constants/Theme";
 
 const STORAGE_KEY = "userMeals";
 
@@ -79,7 +81,8 @@ export default function EditMealScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
       <Text style={styles.heading}>{meal.name}</Text>
 
       <View style={styles.inputRow}>
@@ -94,27 +97,31 @@ export default function EditMealScreen() {
       </View>
 
       <Text style={styles.section}>Nutrition Info (x{servings})</Text>
-      <Text>Calories: {(baseMacros.calories * parseFloat(servings || "1")).toFixed(1)} kcal</Text>
-      <Text>Protein: {(baseMacros.g_protein * parseFloat(servings || "1")).toFixed(1)} g</Text>
-      <Text>Carbs: {(baseMacros.g_carbs * parseFloat(servings || "1")).toFixed(1)} g</Text>
-      <Text>Fat: {(baseMacros.g_fat * parseFloat(servings || "1")).toFixed(1)} g</Text>
-    </ScrollView>
+      <Text style={styles.nutritionText}>Calories: {(baseMacros.calories * parseFloat(servings || "1")).toFixed(1)} kcal</Text>
+      <Text style={styles.nutritionText}>Protein: {(baseMacros.g_protein * parseFloat(servings || "1")).toFixed(1)} g</Text>
+      <Text style={styles.nutritionText}>Carbs: {(baseMacros.g_carbs * parseFloat(servings || "1")).toFixed(1)} g</Text>
+      <Text style={styles.nutritionText}>Fat: {(baseMacros.g_fat * parseFloat(servings || "1")).toFixed(1)} g</Text>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: THEME.background },
   container: { flex: 1, padding: 16 },
-  heading: { fontSize: 24, fontWeight: "bold", marginBottom: 16 },
+  heading: { fontSize: 24, fontWeight: "bold", marginBottom: 16, color: THEME.primary },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     marginBottom: 12,
   },
-  label: { fontSize: 16 },
+  label: { fontSize: 16, color: THEME.text },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: THEME.border,
+    backgroundColor: THEME.surface,
+    color: THEME.text,
     paddingHorizontal: 10,
     width: 60,
     height: 40,
@@ -125,8 +132,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 18,
     fontWeight: "600",
+    color: THEME.primary,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: THEME.border,
     paddingBottom: 6,
+  },
+  nutritionText: {
+    color: THEME.text,
+    fontSize: 16,
+    marginVertical: 2,
   },
 });

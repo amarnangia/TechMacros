@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   StyleSheet,
   Platform,
+  SafeAreaView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { THEME } from "../../constants/Theme";
 
 // Types
 type NutritionInfo = {
@@ -71,6 +73,7 @@ const MenuScreen = () => {
       const formattedDateString = `${year}-${month}-${day}`;
       const apiUrl = `https://techdining.api.nutrislice.com/menu/api/weeks/school/${location}/menu-type/${meal}/${formattedDatePath}/?format=json`;
 
+      console.log('API Request URL:', apiUrl);
       const response = await fetch(apiUrl);
       const json = await response.json();
 
@@ -148,7 +151,8 @@ const MenuScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
       <Text style={styles.heading}>
         {meal?.toUpperCase()} at {location?.replace("-", " ").toUpperCase()}
       </Text>
@@ -235,27 +239,31 @@ const MenuScreen = () => {
           )}
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME.background,
+  },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#FFFFFF", // white background
   },
   heading: {
     fontSize: 20,
     fontWeight: "600",
     marginTop: 12,
     marginBottom: 4,
-    color: "#003057", // Tech Blue
+    color: THEME.primary,
   },
   subHeading: {
     fontSize: 16,
     marginBottom: 10,
-    color: "#003057",
+    color: THEME.primary,
   },
   loading: {
     marginTop: 20,
@@ -263,7 +271,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingVertical: 10,
     paddingHorizontal: 8,
-    backgroundColor: "#B3A369", // Tech Gold
+    backgroundColor: THEME.primary,
     borderRadius: 6,
     marginTop: 10,
     flexDirection: "row",
@@ -272,46 +280,46 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#FFFFFF", // white text on gold
+    color: THEME.background,
   },
   sectionToggle: {
     fontSize: 18,
-    color: "#FFFFFF",
+    color: THEME.background,
   },
   itemCard: {
     padding: 12,
     marginTop: 8,
-    backgroundColor: "#F5F5F5", // light neutral background
+    backgroundColor: THEME.surface,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#B3A369",
+    borderColor: THEME.border,
   },
   itemName: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#003057", // Tech Blue
+    color: THEME.primary,
   },
   macros: {
     marginTop: 4,
     fontSize: 14,
-    color: "#555555",
+    color: THEME.text,
   },
   noName: {
     fontSize: 16,
     marginVertical: 4,
-    color: "#999999",
+    color: THEME.primary,
   },
   emptyText: {
     marginTop: 20,
     textAlign: "center",
     fontSize: 16,
-    color: "#888888",
+    color: THEME.primary,
   },
   availableDates: {
     marginTop: 10,
     textAlign: "center",
     fontSize: 14,
-    color: "#003057",
+    color: THEME.text,
   },
   dateNavigationContainer: {
     flexDirection: "row",
@@ -319,20 +327,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginVertical: 16,
     paddingVertical: 10,
-    backgroundColor: "#E8E8E8",
+    backgroundColor: THEME.surface,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: THEME.border,
   },
   dateText: {
     fontSize: 16,
     fontWeight: "600",
     paddingHorizontal: 12,
-    color: "#003057",
+    color: THEME.primary,
     textDecorationLine: "underline",
   },
   dateNavArrow: {
     fontSize: 20,
     paddingHorizontal: 10,
-    color: "#003057",
+    color: THEME.primary,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    color: THEME.text,
+    marginTop: 2,
   },
 });
 
