@@ -15,7 +15,7 @@ export const COLORS = {
 };
 
 export const THEME = {
-  background: COLORS.BLACK,
+  background: '#1E1E1E',
   surface: COLORS.DARK_GRAY,
   primary: COLORS.TECH_GOLD,
   text: COLORS.WHITE,

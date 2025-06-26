@@ -52,10 +52,10 @@ export default function CustomTabBar({
             position: "absolute",
             backgroundColor: Colors.animatedIconBG,
             borderRadius: 30,
-            marginHorizontal: "1%",
+            marginHorizontal: "7.25%",
             width: "18%",
-            height: "150%",
-            bottom: -8,
+            height: "120%",
+            bottom: 8,
           },
         ]}
       ></Animated.View>
@@ -112,13 +112,13 @@ const styles = StyleSheet.create({
   tab_bar: {
     position: "absolute",
     bottom: "0%", //Bottom of the tab bar
-    marginBottom: "4%",
+    marginBottom: "2%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: Colors.tabBarBG,
     marginHorizontal: Numbers.horizontalMargin, //Margin between tab bar sides and screen sides
-    //paddingVertical: 50, //Vertical padding between buttons and edge of the tab bar
-    //borderRadius: 35, //Rounds corners of the tab bar, smaller number equals more sharp
+    paddingVertical: 10, //Vertical padding between buttons and edge of the tab bar
+    borderRadius: 35, //Rounds corners of the tab bar, smaller number equals more sharp
   },
 });

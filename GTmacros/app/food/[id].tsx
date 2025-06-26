@@ -185,10 +185,10 @@ const FoodDetailScreen = () => {
           )}
 
           <Text style={styles.section}>Allergens</Text>
-          {food.icons?.food_icons?.length > 0 ? (
+          {food.icons?.food_icons?.filter(icon => icon.enabled)?.length > 0 ? (
             <View style={styles.nutritionList}>
-              {food.icons.food_icons.map((icon, idx) => (
-                <Text key={idx}>• {icon.name}</Text>
+              {food.icons.food_icons.filter(icon => icon.enabled).map((icon, idx) => (
+                <Text key={idx} style={styles.bodyText}>• {icon.help_text}</Text>
               ))}
             </View>
           ) : (

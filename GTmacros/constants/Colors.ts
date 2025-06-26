@@ -6,12 +6,12 @@ export default {
   tabActiveTint: "#0D92F4",
   tabInactiveTint: "#ced4da",
 
-  tabBarBG: "#ffffff00",
+  tabBarBG: "#000000",
   animatedIconBG: "#343a4050",
   
   //overall 
   light: {
-    text: '#000',
+    text: '#1E1E1E',
     background: '#fff',
     tint: tintColorLight,
     tabIconDefault: '#ccc',
@@ -19,7 +19,7 @@ export default {
   },
   dark: {
     text: '#fff',
-    background: '#000',
+    background: '#1E1E1E',
     tint: tintColorDark,
     tabIconDefault: '#ccc',
     tabIconSelected: tintColorDark,
