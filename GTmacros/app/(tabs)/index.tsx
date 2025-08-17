@@ -124,62 +124,69 @@ const ChooseMealScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.headerCard}>
-        <Text style={styles.titleText}>Welcome to GT Macros</Text>
-        <View style={styles.macrosRow}>
-          <MacroBar label="Calories" value={totalMacros.calories} goal={goals.calories} color="#FF6B6B" />
-          <MacroBar label="Protein" value={totalMacros.protein} goal={goals.protein} color="#4ECDC4" />
-        </View>
-        <View style={styles.macrosRow}>
-          <MacroBar label="Carbs" value={totalMacros.carbs} goal={goals.carbs} color="#FFD93D" />
-          <MacroBar label="Fat" value={totalMacros.fat} goal={goals.fat} color="#6B6BFF" />
-        </View>
-        <Text style={styles.warningText}>⚠️ Sugar content data is not available from our current data source</Text>
-        <TouchableOpacity style={styles.editButton} onPress={() => router.push("./goals/edit-screen")}>
-          <Text style={styles.editButtonText}>Edit Goals</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Dining Halls */}
-      <Text style={styles.heading}>Dining Halls</Text>
-      <View style={styles.diningHallContainer}>
-        {diningHalls.map((loc) => (
-          <TouchableOpacity
-            key={loc.id}
-            style={styles.diningHallButton}
-            onPress={() => openMealModal(loc)}
-          >
-            <Text style={styles.optionText}>{loc.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Other Locations */}
-      <Text style={styles.heading}>Other Food Places</Text>
-      <Text style={styles.warning}>⚠️ Menu info not available for these locations.</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollWrapper}>
-        {otherLocations.map((loc) => (
-          <TouchableOpacity key={loc.id} style={styles.optionBox} onPress={() => openMealModal(loc)}>
-            <Text style={styles.icon}>{loc.icon}</Text>
-            <Text style={styles.optionText}>{loc.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Modal */}
-      <Modal transparent animationType="slide" visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Select a Meal</Text>
-            {selectedLocation?.meals.map((meal: string) => (
-              <TouchableOpacity key={meal} style={styles.mealButton} onPress={() => handleMealSelect(meal)}>
-                <Text style={styles.mealButtonText}>{meal}</Text>
-              </TouchableOpacity>
-            ))}
-            <Button title="Cancel" color="#aaa" onPress={() => setModalVisible(false)} />
+        <View style={styles.headerCard}>
+          <Text style={styles.titleText}>Welcome to GT Macros</Text>
+          <View style={styles.macrosRow}>
+            <MacroBar label="Calories" value={totalMacros.calories} goal={goals.calories} color="#FF6B6B" />
+            <MacroBar label="Protein" value={totalMacros.protein} goal={goals.protein} color="#4ECDC4" />
           </View>
+          <View style={styles.macrosRow}>
+            <MacroBar label="Carbs" value={totalMacros.carbs} goal={goals.carbs} color="#FFD93D" />
+            <MacroBar label="Fat" value={totalMacros.fat} goal={goals.fat} color="#6B6BFF" />
+          </View>
+          <Text style={styles.warningText}>⚠️ Sugar content data is not available from our current data source</Text>
+          <TouchableOpacity style={styles.editButton} onPress={() => router.push("./goals/edit-screen")}>
+            <Text style={styles.editButtonText}>Edit Goals</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
+
+        {/* Dining Halls */}
+        <Text style={styles.heading}>Dining Halls</Text>
+        <View style={styles.diningHallContainer}>
+          {diningHalls.map((loc) => (
+            <TouchableOpacity
+              key={loc.id}
+              style={styles.diningHallButton}
+              onPress={() => openMealModal(loc)}
+            >
+              <Text style={styles.optionText}>{loc.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.customMealButton}
+          onPress={() => router.push("./food/custom-meal-page")}
+        >
+          <Text style={styles.customMealText}>➕ Add Custom Meal</Text>
+        </TouchableOpacity>
+
+        {/* Other Locations */}
+        <Text style={styles.heading}>Coming Soon!</Text>
+        <Text style={styles.warning}>⚠️ Menu info not available for these locations.</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollWrapper}>
+          {otherLocations.map((loc) => (
+            <TouchableOpacity key={loc.id} style={styles.optionBox} onPress={() => openMealModal(loc)}>
+              <Text style={styles.icon}>{loc.icon}</Text>
+              <Text style={styles.optionText}>{loc.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Modal */}
+        <Modal transparent animationType="slide" visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Select a Meal</Text>
+              {selectedLocation?.meals.map((meal: string) => (
+                <TouchableOpacity key={meal} style={styles.mealButton} onPress={() => handleMealSelect(meal)}>
+                  <Text style={styles.mealButtonText}>{meal}</Text>
+                </TouchableOpacity>
+              ))}
+              <Button title="Cancel" color="#aaa" onPress={() => setModalVisible(false)} />
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -193,7 +200,9 @@ const MacroBar = ({ label, value, goal, color }: { label: string; value: number;
       <View style={styles.barBackground}>
         <View style={[styles.barFill, { width: `${percent}%`, backgroundColor: color }]} />
       </View>
-      <Text style={{ color: THEME.text, fontSize: 12, marginTop: 2 }}>{value} / {goal} ({percent.toFixed(0)}%)</Text>
+      <Text style={{ color: THEME.text, fontSize: 12, marginTop: 2 }}>
+        {value} / {goal} ({percent.toFixed(0)}%)
+      </Text>
     </View>
   );
 };
@@ -256,12 +265,14 @@ const styles = StyleSheet.create({
   optionBox: {
     width: BOX_SIZE,
     height: BOX_SIZE,
-    backgroundColor: THEME.primary,
+    backgroundColor: THEME.surface,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
     padding: 6,
+    borderWidth: 2,
+    borderColor: THEME.primary,
   },
   icon: {
     fontSize: 22,
@@ -270,7 +281,8 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     textAlign: "center",
-    color: THEME.background,
+    color: THEME.primary,
+    fontWeight: "600",
   },
   diningHallContainer: {
     flexDirection: "row",
@@ -282,12 +294,30 @@ const styles = StyleSheet.create({
   diningHallButton: {
     width: "48%",
     height: DINING_HALL_BOX_SIZE,
-    backgroundColor: THEME.primary,
+    backgroundColor: THEME.surface,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 10,
     padding: 6,
+    borderWidth: 2,
+    borderColor: THEME.primary,
+  },
+  customMealButton: {
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: THEME.primary,
+    backgroundColor: THEME.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  customMealText: {
+    color: THEME.primary,
+    fontSize: 16,
+    fontWeight: "600",
   },
   barBackground: {
     height: 14,
