@@ -1,6 +1,6 @@
 import Numbers from "@/constants/Numbers";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect } from "react";
+import React, { JSX, useEffect } from "react";
 import {
   GestureResponderEvent,
   Pressable,
@@ -32,9 +32,6 @@ const TabButton = ({
   const icon: Record<string, (props: any) => JSX.Element> = {
     index: (props: any) => (
       <Ionicons name="home-sharp" size={Numbers.iconSize} {...props} />
-    ),
-    recipes: (props: any) => (
-      <Ionicons name="restaurant-sharp" size={Numbers.iconSize} {...props} />
     ),
     two: (props: any) => (
       <Ionicons name="time-sharp" size={Numbers.iconSize} {...props} />

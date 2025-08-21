@@ -58,7 +58,7 @@ const MacroCircle = ({
       </Svg>
       <View style={[StyleSheet.absoluteFill, styles.center]}>
         <Text style={styles.valueText}>
-          {value}
+          {value.toFixed(2)}
           {unit}
         </Text>
         <Text style={styles.valueText}>
@@ -87,12 +87,12 @@ const styles = StyleSheet.create({
   valueText: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#003057",
+    color: "#FFFFFF",
   },
   label: {
     marginTop: 4,
     fontSize: 14,
-    color: "#333",
+    color: "#FFFFFF",
   },
 });
 

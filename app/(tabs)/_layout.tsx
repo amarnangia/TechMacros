@@ -34,12 +34,7 @@ export default function TabLayout() {
           title: 'Home',
         }}
       />
-      <Tabs.Screen
-        name="recipes"
-        options={{
-          title: 'Recipes',
-        }}
-      />
+
       <Tabs.Screen
         name="two"
         options={{

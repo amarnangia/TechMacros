@@ -118,7 +118,7 @@ const ChooseMealScreen = () => {
     setModalVisible(true);
   };
 
-  const diningHalls = locationData.filter((loc) => diningHallIds.includes(loc.id));
+  const diningHalls = locationData.filter((loc) => diningHallIds.includes(loc.id) && loc.id !== "brittain");
   const otherLocations = locationData.filter((loc) => !diningHallIds.includes(loc.id));
 
   return (
@@ -134,7 +134,7 @@ const ChooseMealScreen = () => {
             <MacroBar label="Carbs" value={totalMacros.carbs} goal={goals.carbs} color="#FFD93D" />
             <MacroBar label="Fat" value={totalMacros.fat} goal={goals.fat} color="#6B6BFF" />
           </View>
-          <Text style={styles.warningText}>⚠️ Sugar content data is not available from our current data source</Text>
+
           <TouchableOpacity style={styles.editButton} onPress={() => router.push("./goals/edit-screen")}>
             <Text style={styles.editButtonText}>Edit Goals</Text>
           </TouchableOpacity>
@@ -162,8 +162,8 @@ const ChooseMealScreen = () => {
         </TouchableOpacity>
 
         {/* Other Locations */}
-        <Text style={styles.heading}>Coming Soon!</Text>
-        <Text style={styles.warning}>⚠️ Menu info not available for these locations.</Text>
+        <Text style={styles.heading}>On Campus Dining!</Text>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollWrapper}>
           {otherLocations.map((loc) => (
             <TouchableOpacity key={loc.id} style={styles.optionBox} onPress={() => openMealModal(loc)}>
