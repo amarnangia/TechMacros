@@ -53,6 +53,7 @@ const ChooseMealScreen = () => {
   const [goals, setGoals] = useState(DEFAULT_GOALS);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const router = useRouter();
 
   const today = new Date();
@@ -92,6 +93,12 @@ const ChooseMealScreen = () => {
           const stored = await AsyncStorage.getItem(STORAGE_KEY);
           if (stored) {
             setMealHistory(JSON.parse(stored));
+          }
+          
+          // Check if welcome modal has been shown
+          const welcomeShown = await AsyncStorage.getItem('welcomeShown');
+          if (!welcomeShown) {
+            setWelcomeModalVisible(true);
           }
         } catch (err) {
           console.error("Failed to load meal history:", err);
@@ -173,7 +180,34 @@ const ChooseMealScreen = () => {
           ))}
         </ScrollView>
 
-        {/* Modal */}
+        {/* Welcome Modal */}
+        <Modal transparent animationType="fade" visible={welcomeModalVisible} onRequestClose={() => setWelcomeModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.welcomeModal}>
+              <Text style={styles.welcomeTitle}>Welcome to GT Macros!</Text>
+              
+              <Text style={styles.welcomeText}>
+                If you find missing data, that is an issue from our data source, but we strive to show as accurate information as we can.
+              </Text>
+              
+              <Text style={styles.upcomingTitle}>Upcoming Features:</Text>
+              <Text style={styles.upcomingText}>• Enhanced UI</Text>
+              <Text style={styles.upcomingText}>• Food lookup by name</Text>
+              
+              <TouchableOpacity 
+                style={styles.welcomeButton} 
+                onPress={async () => {
+                  await AsyncStorage.setItem('welcomeShown', 'true');
+                  setWelcomeModalVisible(false);
+                }}
+              >
+                <Text style={styles.welcomeButtonText}>Got it!</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Meal Selection Modal */}
         <Modal transparent animationType="slide" visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
@@ -368,6 +402,55 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "500",
     marginTop: 8,
+  },
+  welcomeModal: {
+    backgroundColor: THEME.surface,
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: THEME.border,
+    maxWidth: "90%",
+    alignSelf: "center",
+  },
+  welcomeTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: THEME.primary,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  welcomeText: {
+    fontSize: 16,
+    color: THEME.text,
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  upcomingTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: THEME.primary,
+    marginBottom: 8,
+    alignSelf: "flex-start",
+  },
+  upcomingText: {
+    fontSize: 16,
+    color: THEME.text,
+    marginBottom: 4,
+    alignSelf: "flex-start",
+  },
+  welcomeButton: {
+    backgroundColor: THEME.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  welcomeButtonText: {
+    color: THEME.background,
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
 

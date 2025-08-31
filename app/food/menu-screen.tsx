@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Platform,
   SafeAreaView,
+  TouchableOpacity,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -153,9 +154,14 @@ const MenuScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
-      <Text style={styles.heading}>
-        {meal?.toUpperCase()} at {location?.replace("-", " ").toUpperCase()}
-      </Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.heading}>
+          {meal?.toUpperCase()} at {location?.replace("-", " ").toUpperCase()}
+        </Text>
+      </View>
 
       
       <View style={styles.dateNavigationContainer}>
@@ -253,12 +259,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  backArrow: {
+    fontSize: 24,
+    color: THEME.primary,
+  },
   heading: {
     fontSize: 20,
     fontWeight: "600",
-    marginTop: 12,
-    marginBottom: 4,
     color: THEME.primary,
+    flex: 1,
   },
   subHeading: {
     fontSize: 16,

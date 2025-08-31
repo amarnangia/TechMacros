@@ -378,7 +378,10 @@ const Page2 = () => {
         {/* Meals List - Only show for daily view */}
         {viewMode === 'daily' && (
           <ScrollView style={styles.mealList}>
-            <Text style={styles.sectionTitle}>Meals</Text>
+            <View style={styles.mealsHeader}>
+              <Text style={styles.sectionTitle}>Meals</Text>
+              <Text style={styles.instructionText}>tap an item to edit/delete it</Text>
+            </View>
             {mealsForDate.length === 0 ? (
               <Text style={styles.empty}>No meals for this day.</Text>
             ) : (
@@ -514,11 +517,21 @@ const styles = StyleSheet.create({
     minWidth: 200,
     textAlign: 'center',
   },
+  mealsHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 12,
+    gap: 8,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "600",
-    marginBottom: 12,
     color: THEME.primary,
+  },
+  instructionText: {
+    fontSize: 14,
+    color: THEME.text,
+    fontWeight: '400',
   },
   mealList: { flex: 1 },
   mealCard: {
