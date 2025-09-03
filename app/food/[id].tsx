@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { format } from "date-fns";
 import MacroCircle from '@/components/MacroCircle';
 import { THEME } from '../../constants/Theme';
 
@@ -94,12 +95,18 @@ const FoodDetailScreen = () => {
 
   const saveMeal = async () => {
     try {
-      const dateKey = new Date().toISOString().split("T")[0];
+      const dateKey = format(new Date(), "yyyy-MM-dd");
       const STORAGE_KEY = "userMeals";
+      
+      console.log("Saving meal for date:", dateKey);
+      console.log("Food data:", food);
+      console.log("Nutrition data:", nutrition);
       
       // Get existing meals
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       const mealHistory = stored ? JSON.parse(stored) : {};
+      
+      console.log("Existing meal history:", mealHistory);
       
       // Add new meal
       const newMeal = {
@@ -114,13 +121,18 @@ const FoodDetailScreen = () => {
         },
       };
       
+      console.log("New meal to save:", newMeal);
+      
       if (!mealHistory[dateKey]) {
         mealHistory[dateKey] = [];
       }
       mealHistory[dateKey].push(newMeal);
       
+      console.log("Updated meal history:", mealHistory);
+      
       // Save back to storage
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mealHistory));
+      console.log("Meal saved successfully");
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error saving meal:", error);
@@ -134,7 +146,7 @@ const FoodDetailScreen = () => {
 
   const goHome = () => {
     setShowSuccessModal(false);
-    router.push('/(tabs)/');
+    router.replace('/(tabs)/');
   };
 
   const keepAdding = () => {
@@ -155,14 +167,28 @@ const FoodDetailScreen = () => {
           <Text style={styles.section}>Macro Breakdown</Text>
           <Text style={styles.bodyText}>Edit Macro Goals in profile</Text>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={{ paddingHorizontal: 10 }}>
-            <View style={{ flexDirection: "row", marginVertical: 12 }}>
-              <MacroCircle label="CAL" value={nutrition.calories * s} unit="" max={goalCalories} color="#FFA500" />
-              <MacroCircle label="FAT" value={fat} max={goalFat} color="#F28C28" />
-              <MacroCircle label="CARBS" value={carbs} max={goalCarbs} color="#007FAE" />
-              <MacroCircle label="PROT" value={protein} max={goalProtein} color="#B3A369" />
+          <View style={styles.macroContainer}>
+            <View style={styles.calorieBarContainer}>
+              <Text style={styles.calorieLabel}>{(nutrition.calories * s).toFixed(2)} / {goalCalories} calories</Text>
+              <View style={styles.calorieBarBackground}>
+                <View 
+                  style={[
+                    styles.calorieBarFill, 
+                    { 
+                      width: `${Math.min((nutrition.calories * s / goalCalories) * 100, 100)}%`,
+                      backgroundColor: "#FFA500"
+                    }
+                  ]} 
+                />
+              </View>
+
             </View>
-          </ScrollView>
+            <View style={styles.macroRow}>
+              <MacroCircle label="FAT" value={fat} max={goalFat} color="#FF6B6B" />
+              <MacroCircle label="CARBS" value={carbs} max={goalCarbs} color="#4ECDC4" />
+              <MacroCircle label="PROT" value={protein} max={goalProtein} color="#45B7D1" />
+            </View>
+          </View>
 
           <View style={styles.inputRow}>
             <Text style={styles.label}>Servings:</Text>
@@ -298,6 +324,43 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: THEME.text,
     marginTop: 6,
+  },
+  macroContainer: {
+    marginVertical: 12,
+    alignItems: "center",
+  },
+  calorieBarContainer: {
+    width: "100%",
+    marginBottom: 16,
+    alignItems: "center",
+  },
+  calorieLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: THEME.text,
+    marginBottom: 8,
+  },
+  calorieBarBackground: {
+    width: "80%",
+    height: 20,
+    backgroundColor: "#ddd",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  calorieBarFill: {
+    height: "100%",
+    borderRadius: 10,
+  },
+  calorieText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: THEME.text,
+    marginTop: 4,
+  },
+  macroRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
   },
   saveButton: {
     position: "absolute",
